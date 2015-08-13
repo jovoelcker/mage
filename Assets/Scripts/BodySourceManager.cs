@@ -10,7 +10,7 @@ public class BodySourceManager : MonoBehaviour
 	private Body[] _Data = null;
 	private ulong _trackingId = 0;
 	
-	public VGBTest GestureManager;
+	public MageHandler GestureManager;
 	
 	public Body[] GetData()
 	{

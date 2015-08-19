@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 using Windows.Kinect;
 using Microsoft.Kinect.VisualGestureBuilder;
@@ -6,8 +6,14 @@ using System.IO;
 
 public class MageHandler : MonoBehaviour {
 
-	// Magic effects all listed objects
-	public List<MagicEffects> effectedObjects;
+	// The magical effects for the different quests
+	public List<MagicEffects> tutorialEffectedObjects;
+	public List<MagicEffects> fenceEffectedObjects;
+	public List<MagicEffects> spiderEffectedObjects;
+	public List<MagicEffects> goblinsEffectedObjects;
+	public List<MagicEffects> bossEffectedObjects;
+
+	private Dictionary<Gamestate.QuestStates, List<MagicEffects>> effectedObjects;
 
 	// Specifies the used gestures in the loaded database
 	Gesture attackGesture;
@@ -22,6 +28,14 @@ public class MageHandler : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		// The effected Objects depend on the queststate
+		effectedObjects = new Dictionary<Gamestate.QuestStates, List<MagicEffects>>();
+		effectedObjects.Item[Gamestate.QuestStates.Q_INIT] = tutorialEffectedObjects;
+		effectedObjects.Item[Gamestate.QuestStates.Q_BlOCKADE_BEGIN] = fenceEffectedObjects;
+		effectedObjects.Item[Gamestate.QuestStates.Q_SPIDER_BEGIN] = spiderEffectedObjects;
+		effectedObjects.Item[Gamestate.QuestStates.Q_GOBBLINS_BEGIN] = goblinsEffectedObjects;
+		effectedObjects.Item[Gamestate.QuestStates.Q_BOSS_INTERIM] = bossEffectedObjects;
+
 		sensor = KinectSensor.GetDefault();
 		if (sensor != null)
 		{
@@ -64,6 +78,15 @@ public class MageHandler : MonoBehaviour {
 		}
 	}
 	
+	// Update is called once per frame
+	void Update() {
+		float forwardAxis = Input.GetAxisRaw("Vertical");
+		if (forwardAxis > 0)
+			Attack();
+		else if (forwardAxis < 0)
+			Defend();
+	}
+	
 	public void SetTrackingId(ulong id)
 	{
 		vgbFrameReader.IsPaused = false;
@@ -101,16 +124,20 @@ public class MageHandler : MonoBehaviour {
 	}
 
 	void Attack() {
-		// All effected objects can react on the gestures
-		foreach (MagicEffects effectedObject in effectedObjects) {
-			effectedObject.SendMessage("Attack");
+		if (effectedObjects.Item[Gamestate.getInstance().questState] != null) {
+			// All effected objects can react on the gestures
+			foreach (MagicEffects effectedObject in effectedObjects.Item[Gamestate.getInstance().questState]) {
+				effectedObject.Attack();
+			}
 		}
 	}
 
 	void Defend() {
-		// All effected objects can react on the gestures
-		foreach (MagicEffects effectedObject in effectedObjects) {
-			effectedObject.SendMessage("Defend");
+		if (effectedObjects.Item[Gamestate.getInstance().questState] != null) {
+			// All effected objects can react on the gestures
+			foreach (MagicEffects effectedObject in effectedObjects.Item[Gamestate.getInstance().questState]) {
+				effectedObject.Defend();
+			}
 		}
 	}
 
